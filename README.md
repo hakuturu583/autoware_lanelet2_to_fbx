@@ -32,9 +32,15 @@ uv sync            # or: pip install .
 uv run ll2tofbx export --help
 ```
 
-No apt packages, compiler or Docker are required on Linux `x86_64`, macOS or
-Windows. On a minimal Linux image the `bpy` wheel still needs the X11/GL client
-libraries it links against; see the `apt-get` line in the `Dockerfile`.
+No compiler, system Blender or Docker is required on Linux `x86_64`, macOS or
+Windows. The `bpy` wheel links against the X11/GL client libraries, which desktop
+installs already have. On a minimal headless image (e.g. `python:*-slim`),
+install them first (nothing opens a display):
+
+```bash
+apt-get install -y --no-install-recommends \
+  libgl1 libsm6 libx11-6 libxext6 libxfixes3 libxi6 libxkbcommon0 libxrender1
+```
 
 ## Quick Start
 
@@ -52,22 +58,6 @@ Then check the report:
 - `success` is `true`
 - `validation.errors` is empty
 - the `*.fbx` file exists
-
-## Docker
-
-The image is optional. It installs the locked environment (including `bpy`) on
-`python:3.11-slim-bookworm`:
-
-```bash
-bash scripts/docker_build.sh                       # LL2TOFBX_IMAGE overrides the tag
-bash scripts/docker_export.sh \
-  --input "$(pwd)/lanelet2_map.osm" \
-  --output "$(pwd)/out/lanelet2_map.fbx" \
-  --report "$(pwd)/out/lanelet2_map.report.json"
-```
-
-`docker_export.sh` mounts the current directory at the same absolute path inside
-the container, so every path passed to it must live under the current directory.
 
 ## Common Conversion Examples
 
