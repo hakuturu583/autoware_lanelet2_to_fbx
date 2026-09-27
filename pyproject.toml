@@ -1,0 +1,53 @@
+[project]
+name = "autoware-lanelet2-to-fbx"
+version = "0.1.0"
+description = "Convert Autoware Lanelet2 OSM maps into layered FBX meshes for CARLA"
+readme = "README.md"
+authors = [
+    { name = "Masaya Kataoka", email = "ms.kataoka@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    # `lanelet2` comes from simple-lanelet2, a prebuilt abi3 (cp39+) wheel that
+    # reimplements the Lanelet2 Python API. The PyPI `lanelet2` bindings are
+    # built per interpreter against Boost.Python, which is what used to pin this
+    # tool to one Python and push Blender out into a system package.
+    "simple-lanelet2>=1.1.2",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "mapbox-earcut>=1.0.1",
+    # `bpy` publishes wheels for exactly one CPython per Blender line:
+    # 4.x and 5.0 are cp311-only, 5.1+ is cp313-only. With lanelet2 no longer
+    # tying the interpreter down, each supported Python just gets the line that
+    # ships for it. On 3.12 there is no bpy wheel at all; the CLI then falls
+    # back to a `blender` executable on PATH (or BLENDER_BIN).
+    "bpy>=4.2,<5.1; python_version == '3.11'",
+    "bpy>=5.1; python_version == '3.13'",
+]
+
+[project.scripts]
+ll2tofbx = "autoware_lanelet2_to_fbx.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.8.17,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.0",
+    "pre-commit>=4.5.0",
+    "pytest>=9.0.3",
+    "pytest-xdist>=3.8.0",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "blender: exercises the real Blender FBX export (needs bpy or a blender executable)",
+]

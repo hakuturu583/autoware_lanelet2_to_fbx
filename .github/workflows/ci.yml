@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+      - run: uv sync --dev
+      - run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  test:
+    # 3.11 and 3.13 install a `bpy` wheel (4.2-5.0 and 5.1+ respectively) and
+    # run the real FBX export; 3.12 has no bpy wheel, so it covers the
+    # Blender-less path and skips the `blender` tests.
+    name: test (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --dev --frozen
+      - run: uv run pytest -v --tb=short -n auto
